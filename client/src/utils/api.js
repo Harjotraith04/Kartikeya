@@ -195,6 +195,7 @@ export const projectsApi = {
     body: JSON.stringify({ research_details: researchData })
   })
 };
+
 export const documentsApi = {  
   /**
    * Process document segments from a project content response
@@ -379,92 +380,55 @@ export const documentsApi = {
   })
 };
 
-/**
- * Codes API functions
- */
 export const codesApi = {
-  /**
-   * Get all codes for a project
-   * @param {number|string} projectId - Project ID
-   * @returns {Promise} - Array of codes
-   */
-  getProjectCodes: (projectId) => apiRequest(`/codes/project/${projectId}`),
-
-  /**
-   * Create a new code
-   * @param {object} codeData - Code data (name, project_id, description, color, etc.)
-   * @returns {Promise} - Created code
-   */
   createCode: (codeData) => apiRequest('/codes/', {
     method: 'POST',
     body: JSON.stringify(codeData)
   }),
 
-  /**
-   * Update a code
-   * @param {number|string} codeId - Code ID
-   * @param {object} updateData - Updated code data
-   * @returns {Promise} - Updated code
-   */
-  updateCode: (codeId, updateData) => apiRequest(`/codes/${codeId}`, {
+  updateCode: (codeId, codeData) => apiRequest(`/codes/${codeId}`, {
     method: 'PUT',
-    body: JSON.stringify(updateData)
+    body: JSON.stringify(codeData)
   }),
 
-  /**
-   * Delete a code
-   * @param {number|string} codeId - Code ID
-   * @returns {Promise} - Delete confirmation
-   */
   deleteCode: (codeId) => apiRequest(`/codes/${codeId}`, {
     method: 'DELETE'
   }),
 
-  /**
-   * Get code assignments for a code
-   * @param {number|string} codeId - Code ID
-   * @returns {Promise} - Array of assignments
-   */
-  getCodeAssignments: (codeId) => apiRequest(`/codes/${codeId}/assignments`),
+  getProjectCodes: (projectId) => apiRequest(`/codes/project/${projectId}`),
 
-  /**
-   * Generate AI codes for documents (placeholder for future implementation)
-   * @param {array} documentIds - Array of document IDs
-   * @returns {Promise} - Generated AI codes
-   */
-  generateAICodes: (documentIds) => apiRequest('/ai-services/initial-coding', {
+  getCode: (codeId) => apiRequest(`/codes/${codeId}`),
+
+  assignGroup: (codeIds, groupName) => apiRequest('/codes/assign-group', {
     method: 'POST',
-    body: JSON.stringify({ document_ids: documentIds })
+    body: JSON.stringify({ code_ids: codeIds, group_name: groupName })
   }),
 
-  /**
-   * Get all unique group names for a project
-   * @param {number|string} projectId - Project ID
-   * @returns {Promise} - Array of group names
-   */
-  getProjectGroups: (projectId) => apiRequest(`/codes/groups/project/${projectId}`),
-
-  /**
-   * Assign a group to multiple codes
-   * @param {array} codeIds - Array of code IDs
-   * @param {string|null} groupName - Group name (null to clear group)
-   * @returns {Promise} - Updated codes
-   */
-  assignGroupToCodes: (codeIds, groupName) => apiRequest('/codes/assign-group', {
-    method: 'PUT',
-    body: JSON.stringify({ 
-      code_ids: codeIds, 
-      group_name: groupName 
-    })
+  assignTheme: (codeIds, themeId) => apiRequest('/codes/assign-theme', {
+    method: 'POST',
+    body: JSON.stringify({ code_ids: codeIds, theme_id: themeId })
   }),
+};
 
+export const codeAssignmentsApi = {
+  assignCode: (assignmentData) => apiRequest('/code-assignments/assign', {
+    method: 'POST',
+    body: JSON.stringify(assignmentData)
+  }),
+  
   /**
-   * Get all codes in a specific group for a project
-   * @param {string} groupName - Group name
-   * @param {number|string} projectId - Project ID
-   * @returns {Promise} - Array of codes in the group
+   * Get code assignments for a document
+   * @param {number|string} documentId - Document ID
    */
-  getCodesByGroup: (groupName, projectId) => apiRequest(`/codes/by-group/${encodeURIComponent(groupName)}?project_id=${projectId}`)
+  getDocumentAssignments: (documentId) => apiRequest(`/code-assignments/document/${documentId}`),
+  
+  /**
+   * Delete a code assignment
+   * @param {number|string} assignmentId - Assignment ID
+   */
+  deleteAssignment: (assignmentId) => apiRequest(`/code-assignments/${assignmentId}`, {
+    method: 'DELETE'
+  })
 };
 
 export const annotationsApi = {

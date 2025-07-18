@@ -198,52 +198,38 @@ function CodeModals({
             <Button variant="outlined" onClick={() => setCreateCodeDialogOpen(false)}>Cancel</Button>            <Button
               variant="contained"
               onClick={async () => {
-                if (newCodeFields.name.trim()) {
-                  try {
-                    // Import the API
-                    const { default: api } = await import('../utils/api');
-                    
-                    // Create the new code data
-                    const codeData = {
-                      name: newCodeFields.name,
-                      description: newCodeFields.description || 'No description',
-                      color: newCodeFields.color || '#3B82F6',
-                      project_id: parseInt(projectId)
-                    };
-                    
-                    // Call the API to create the new code
-                    const response = await fetch(`http://localhost:8000/api/v1/codes/`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                      },
-                      body: JSON.stringify(codeData)
-                    });
-                    
-                    if (!response.ok) {
-                      throw new Error(`Failed to create code: ${response.status}`);
-                    }
-                    
-                    const newCode = await response.json();
-                    
-                    // Add the new code to the codes list
-                    setCodes(prev => [...prev, newCode]);
-                    setSelectedCode(newCode.id.toString());
-                    setCreateCodeDialogOpen(false);
-                    setNewCodeFields({ name: '', definition: '', description: '', category: '', color: '' });
-                    
-                    // Trigger refresh if needed
-                    if (typeof onCodesUpdated === 'function') {
-                      onCodesUpdated();
-                    }
-                  } catch (error) {
-                    console.error('Error creating new code:', error);
-                    alert('Failed to create code. Please try again.');
+                if (!newCodeFields.name.trim()) {
+                  alert('Code name is required.');
+                  return;
+                }
+                
+                try {
+                  const { codesApi } = await import('../utils/api');
+                  
+                  const newCodeData = {
+                    ...newCodeFields,
+                    project_id: projectId
+                  };
+                  
+                  const newCode = await codesApi.createCode(newCodeData);
+                  
+                  // Update local state with the new code
+                  onCodesUpdated();
+                  setCreateCodeDialogOpen(false);
+                  
+                  // If there was a pending selection, assign the new code
+                  if (pendingCodeSelection) {
+                    setSelectedCode(newCode.id);
+                    // Automatically trigger assignment, or let user confirm
+                    setCodesModalOpen(true);
                   }
+                  
+                } catch (error) {
+                  console.error('Error creating code:', error);
+                  alert(`Failed to create code. Please try again.`);
                 }
               }}
-              disabled={!newCodeFields.name.trim()}
+              disabled={!newCodeFields.name}
             >
               Save
             </Button>

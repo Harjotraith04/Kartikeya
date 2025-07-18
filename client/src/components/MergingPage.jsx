@@ -225,17 +225,25 @@ const MergingPage = ({ projectId, codes = [], codeAssignments = [], documents = 
   const handleSaveAndUpload = async () => {
     setIsSaving(true);
     try {
-      // Prepare data for bulk upload
-      const bulkData = codeAssignments.map(assignment => ({
-        assignment_id: assignment.id,
-        manual_code_deleted: deletedCodes.has(`${assignment.id}_manual`),
-        ai_code_deleted: deletedCodes.has(`${assignment.id}_ai`)
-      }));
+      // Get all assignments with their current status
+      const acceptedAssignments = Object.entries(assignmentStatus)
+        .filter(([_, status]) => status === 'accepted')
+        .map(([id]) => parseInt(id));
+      
+      const rejectedAssignments = Object.entries(assignmentStatus)
+        .filter(([_, status]) => status === 'rejected')
+        .map(([id]) => parseInt(id));
 
-      // Call the bulk upload API
-      await apiRequest('/assignment/bulk-upload', {
+      // Call the bulk update API
+      await apiRequest('/code-review/assignments/bulk-update', {
         method: 'POST',
-        body: JSON.stringify({ assignments: bulkData })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accepted_assignment_ids: acceptedAssignments,
+          rejected_assignment_ids: rejectedAssignments
+        })
       });
       
       // Switch to compare tab after successful save
@@ -243,6 +251,11 @@ const MergingPage = ({ projectId, codes = [], codeAssignments = [], documents = 
       
       // Clear deleted codes state
       setDeletedCodes(new Set());
+      
+      // Refresh project data to get updated assignments
+      if (refreshProjectData) {
+        await refreshProjectData();
+      }
       
     } catch (error) {
       console.error('Error saving assignments:', error);
